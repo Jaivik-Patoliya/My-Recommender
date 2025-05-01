@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recommendation & Sentiment Analysis</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <style>
+    body {
+      background-color: black;
+      color: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      text-align: center;
+    }
+    #container {
+      width: 100%;
+      max-width: 600px;
+    }
+    textarea, select, button {
+      width: 100%;
+      margin-top: 10px;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 20px;
+    }
+    input[type="radio"] {
+      margin-top: 10px;
+    }
+    button {
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <h1 id="main-title">My Recommender</h1>
+
+    <label>Choose an Option:</label>
+    <div>
+      <input type="radio" name="main_selection" value="recommend" checked /> Recommendation
+    </div>
+    <div>
+      <input type="radio" name="main_selection" value="sentiment" /> Sentiment Analysis
+    </div>
+
+    <div id="recommend-section">
+      <label>What do you want to recommend?</label>
+      <div>
+        <input type="radio" name="selection_type" value="movie" checked /> Films 🍿
+      </div>
+      <div>
+        <input type="radio" name="selection_type" value="music" /> Music 🎵
+      </div>
+
+      <div id="movie-section">
+        <label>Select a Movie:</label>
+        <select id="movie-select">
+          {% for movie in movies %}
+          <option value="{{ movie }}">{{ movie }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div id="music-section" style="display: none;">
+        <label>Select a Music Track:</label>
+        <select id="music-select">
+          {% for track in music %}
+          <option value="{{ track }}">{{ track }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <button id="recommend-btn">Recommend</button>
+      <div id="recommendations"></div>
+    </div>
+
+    <div id="sentiment-section" style="display: none;">
+      <h2>Sentiment Analysis</h2>
+      <textarea id="review" rows="4" cols="50" placeholder="Enter your movie review..."></textarea>
+      <button id="predict-btn">Predict Sentiment</button>
+      <p id="sentiment-result"></p>
+    </div>
+  </div>
+
+  <script>
+    $('input[name="main_selection"]').change(function() {
+      if ($(this).val() === 'recommend') {
+        $('#main-title').text('My Recommender');
+        $('#recommend-section').show();
+        $('#sentiment-section').hide();
+      } else {
+        $('#main-title').text('Sentiment Analysis');
+        $('#recommend-section').hide();
+        $('#sentiment-section').show();
+      }
+    });
+
+    $('input[name="selection_type"]').change(function() {
+      if ($(this).val() === 'movie') {
+        $('#movie-section').show();
+        $('#music-section').hide();
+      } else {
+        $('#movie-section').hide();
+        $('#music-section').show();
+      }
+    });
+
+    $('#recommend-btn').click(function() {
+      const selectionType = $('input[name="selection_type"]:checked').val();
+      const itemName = selectionType === 'movie' ? $('#movie-select').val() : $('#music-select').val();
+      
+      $.post('/recommend', { selection_type: selectionType, item_name: itemName }, function(data) {
+        $('#recommendations').html('<h3>Recommendations:</h3><ul>' + data.recommendations.map(item => `<li>${item}</li>`).join('') + '</ul>');
+      });
+    });
+
+    $('#predict-btn').click(function() {
+      const review = $('#review').val();
+      
+      $.post('/predict', { review: review }, function(data) {
+        if (data.error) {
+          $('#sentiment-result').text('Error: ' + data.error);
+        } else {
+          $('#sentiment-result').text('The sentiment of the review is: ' + data.sentiment);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
