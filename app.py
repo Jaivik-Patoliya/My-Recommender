@@ -22,7 +22,7 @@ def recommend_movie(movie):
         movie_id = movies.iloc[i[0]].movie_id
         # recommended_movie_posters.append(fetch_movie_poster(movie_id))
         recommended_movie_names.append(movies.iloc[i[0]].title)
-    return recommended_movie_names, recommended_movie_posters 
+    return recommended_movie_names
 
 def recommend_music(musics):
     music_index = music[music['title'] == musics].index[0]
@@ -63,7 +63,7 @@ def recommend():
     item_name = request.form.get('item_name')
 
     if selection_type == 'movie':
-        recommended_names, _ = recommend_movie(item_name)
+        recommended_names = recommend_movie(item_name)
     else:
         recommended_names = recommend_music(item_name)
 
