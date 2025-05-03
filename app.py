@@ -86,73 +86,7 @@ if __name__ == '__main__':
     app.run(debug=True, use_reloader=False)
 
     
-# Streamlit UI
-# st.header('My Recommender')
-# movies = pickle.load(open('movie_list.pkl', 'rb'))
-# similarity = pickle.load(open('similarity.pkl', 'rb'))
-# music = pickle.load(open('music_list.pkl', 'rb'))
-# similarity1 = pickle.load(open('similarity1.pkl', 'rb'))
 
-# selection_type = st.radio(
-#     "What do you want to recommend?",
-#     ["Films:movie_camera:",":rainbow[Music]"],
-#     captions=[
-#         "Get the popcorn.",
-#         "Feel the beat."
-#     ],index=0
-# )
-
-# if selection_type == "Films:movie_camera:":
-#     movie_list = movies['title'].values
-#     selected_movie = st.selectbox(
-#     "Type or select a movie from the dropdown",
-#     movie_list
-# )
-# elif selection_type == ":rainbow[Music]":
-#     music_list = music['title'].values
-#     selected_music = st.selectbox(
-#     "Type or select a music from the dropdown",
-#     music_list
-# )
-    
-# if st.button('Recommend'):
-#     if selection_type == "Films:movie_camera:":
-#         recommended_movie_names, recommended_movie_posters = recommend_movie(selected_movie)
-#         cols = st.columns(5)
-#         for i in range(5):
-#             with cols[i]:
-#                 st.text(recommended_movie_names[i])
-#                 # qst.image(recommended_movie_posters[i])
-
-#     elif selection_type == ":rainbow[Music]":
-#         recommended_music_names = recommend_music(selected_music)
-#         cols = st.columns(5)
-#         for i in range(5):
-#             with cols[i]:
-#                 st.text(recommended_music_names[i])
-                
-                
-                
-# st.title("Sentiment Analysis")
-
-# # Input box for custom review
-# review = st.text_area("Enter your movie review:")
-
-# if st.button("Predict Sentiment"):
-#     try:
-#         # Transform the review using the saved TF-IDF vectorizer
-#         review_tfidf = vectorizer.transform([review])
-        
-#         # Make prediction using the trained model
-#         prediction = model.predict(review_tfidf)
-        
-#         # Convert prediction to a readable label
-#         prediction_label = 'positive' if prediction == 1 else 'negative'
-        
-#         # Display the result
-#         st.write(f"The sentiment of the review is: **{prediction_label}**")
-#     except Exception as e:
-#         st.error(f"Error making prediction: {e}")
 
 
 
