@@ -45,10 +45,17 @@ def recommend_music(musics):
 
 
 # Load models and data
-movies = pickle.load(open('movie_list.pkl', 'rb'))
-similarity = pickle.load(open('similarity.pkl', 'rb'))
-music = pickle.load(open('music_list.pkl', 'rb'))
-similarity1 = pickle.load(open('similarity1.pkl', 'rb'))
+with open('movie_list.pkl', 'rb') as f:
+    movies = pickle.load(f)
+
+with open('similarity.pkl', 'rb') as f:
+    similarity = pickle.load(f)
+
+with open('music_list.pkl', 'rb') as f:
+    music = pickle.load(f)
+
+with open('similarity1.pkl', 'rb') as f:
+    similarity1 = pickle.load(f)
 vectorizer = joblib.load('tfidf_vectorizer.pkl')
 model = joblib.load('sentiment_model.pkl')
 
