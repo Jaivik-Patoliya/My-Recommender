@@ -1,99 +1,79 @@
-import pickle
 import streamlit as st
-import requests
+import pickle
 import joblib
-from flask import Flask, render_template, request
+import requests
 
-app = Flask(__name__)
-# def fetch_movie_poster(movie_id):
-#     url = "https://api.themoviedb.org/3/movie/{}?api_key=8265bd1679663a7ea12ac168da84d2e8&language=en-US".format(movie_id)
-#     data = requests.get(url)
-#     data = data.json()
-#     poster_path = data['poster_path']
-#     full_path = "https://image.tmdb.org/t/p/w500/" + poster_path
-#     return full_path
+
+try:
+    movies = pickle.load(open('movie_list.pkl', 'rb'))
+    similarity = pickle.load(open('similarity.pkl', 'rb'))
+    music = pickle.load(open('music_list.pkl', 'rb'))
+    similarity1 = pickle.load(open('similarity1.pkl', 'rb'))
+
+    model = joblib.load('sentiment_model.pkl')
+    vectorizer = joblib.load('tfidf_vectorizer.pkl')
+except Exception as e:
+    st.error(f"Error loading data: {e}")
+    st.stop()
+
 
 def recommend_movie(movie):
     movie_index = movies[movies['title'] == movie].index[0]
     distances = sorted(list(enumerate(similarity[movie_index])), reverse=True, key=lambda x: x[1])
-    recommended_movie_names = []
-    recommended_movie_posters = []
-    for i in distances[1:6]:
-        movie_id = movies.iloc[i[0]].movie_id
-        # recommended_movie_posters.append(fetch_movie_poster(movie_id))
-        recommended_movie_names.append(movies.iloc[i[0]].title)
+    recommended_movie_names = [movies.iloc[i[0]].title for i in distances[1:6]]
     return recommended_movie_names
 
 def recommend_music(musics):
     music_index = music[music['title'] == musics].index[0]
     distances = sorted(list(enumerate(similarity1[music_index])), reverse=True, key=lambda x: x[1])
-    recommended_music_names = []
-    for i in distances[1:6]:
-        recommended_music_names.append(music.iloc[i[0]].title)
+    recommended_music_names = [music.iloc[i[0]].title for i in distances[1:6]]
     return recommended_music_names
 
+st.title("🎬🎧 My Movie & Music Recommender + Sentiment Analyzer")
 
 
-
-# try:
-#     # Load the saved model and vectorizer
-#     # model = joblib.load('sentiment_model.pkl')
-#     # vectorizer = joblib.load('tfidf_vectorizer.pkl')
-# except Exception as e:
-#     st.error(f"Error loading model or vectorizer: {e}")
-#     st.stop()
+app_choice = st.radio("Choose an option:", ["🎯 Recommendation", "🧠 Sentiment Analysis"])
 
 
-# Load models and data
-with open('movie_list.pkl', 'rb') as f:
-    movies = pickle.load(f)
+if app_choice == "🎯 Recommendation":
+    selection_type = st.radio(
+        "What do you want to recommend?",
+        ["🎥 Film", "🎵 Music"],
+        horizontal=True
+    )
 
-with open('similarity.pkl', 'rb') as f:
-    similarity = pickle.load(f)
+    if selection_type == "🎥 Film":
+        selected_movie = st.selectbox("Select a movie:", movies['title'].values)
+        if st.button("Recommend"):
+            names = recommend_movie(selected_movie)
+            for name in names:
+                st.markdown(f"<h4>{name}</h4>", unsafe_allow_html=True)
 
-with open('music_list.pkl', 'rb') as f:
-    music = pickle.load(f)
-
-with open('similarity1.pkl', 'rb') as f:
-    similarity1 = pickle.load(f)
-vectorizer = joblib.load('tfidf_vectorizer.pkl')
-model = joblib.load('sentiment_model.pkl')
-
-@app.route('/')
-def index():
-    return render_template('index.html', movies=movies['title'].values, music=music['title'].values)
-
-
-@app.route('/recommend', methods=['POST'])
-def recommend():
-    selection_type = request.form.get('selection_type')
-    item_name = request.form.get('item_name')
-
-    if selection_type == 'movie':
-        recommended_names = recommend_movie(item_name)
-    else:
-        recommended_names = recommend_music(item_name)
-
-    return {'recommendations': recommended_names}
+    elif selection_type == "🎵 Music":
+        selected_music = st.selectbox("Select a music title:", music['title'].values)
+        if st.button("Recommend"):
+            names = recommend_music(selected_music)
+            for name in names:
+                st.markdown(f"<h4>{name}</h>", unsafe_allow_html=True)
 
 
-@app.route('/predict', methods=['POST'])
-def predict():
-    review = request.form.get('review')
-    try:
-        review_tfidf = vectorizer.transform([review])
-        prediction = model.predict(review_tfidf)
-        label = 'positive' if prediction == 1 else 'negative'
-        return {'sentiment': label}
-    except Exception as e:
-        return {'error': str(e)}
-    
-    
-if __name__ == '__main__':
-    app.run(debug=True, use_reloader=False)
+elif app_choice == "🧠 Sentiment Analysis":
+    review = st.text_area("Enter your movie review:")
+    if st.button("Predict Sentiment"):
+        try:
+            review_tfidf = vectorizer.transform([review])
+            prediction = model.predict(review_tfidf)
+            prediction_label = 'Positive' if prediction == 1 else 'Negative'
+            if prediction_label == 'Positive':
+                st.markdown(
+                f"<div style='background-color:#4CAF50; padding:10px; border-radius:8px;'>"
+                f"<p style='color:white; font-size:20px;'>The sentiment of the review is: <b>{prediction_label}</b></p>"
+                f"</div>", unsafe_allow_html=True)
+            else:
+                st.markdown(
+                    f"<div style='background-color:#F44336; padding:10px; border-radius:8px;'>"
+                    f"<p style='color:white; font-size:20px;'>The sentiment of the review is: <b>{prediction_label}</b></p>"
+                    f"</div>", unsafe_allow_html=True)
 
-    
-
-
-
-
+        except Exception as e:
+            st.error(f"Error making prediction: {e}")
